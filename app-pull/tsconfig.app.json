@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/app-pull/",
+    "module": "es2022",
+    "types": ["node"],
+    "target": "es2022",
+    "moduleResolution": "node"
+  }
+}

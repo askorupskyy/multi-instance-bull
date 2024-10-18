@@ -1,0 +1,26 @@
+services:
+  main:
+    build: ./app-main
+    tty: true
+
+  pull_1:
+    build: ./app-pull
+    environment:
+      INSTANCE_ID: 1
+
+  pull_2:
+    build: ./app-pull
+    environment:
+      INSTANCE_ID: 2
+
+  pull_3:
+    build: ./app-pull
+    environment:
+      INSTANCE_ID: 3
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    environment:
+      INSTANCE_ID: 4

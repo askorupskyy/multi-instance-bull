@@ -1,22 +1,22 @@
 services:
-  main:
-    build: ./app-main
-    tty: true
-
+  # main:
+  #   build: ./app-main
+  #   tty: true
+  #
   pull_1:
     build: ./app-pull
     environment:
-      INSTANCE_ID: 1
+      INSTANCE_ID: "pull-worker-1"
 
   pull_2:
     build: ./app-pull
     environment:
-      INSTANCE_ID: 2
+      INSTANCE_ID: "pull-worker-2"
 
   pull_3:
     build: ./app-pull
     environment:
-      INSTANCE_ID: 3
+      INSTANCE_ID: "pull-worker-3"
 
   redis:
     image: "redis:alpine"

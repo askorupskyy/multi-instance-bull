@@ -1,13 +1,15 @@
 import { Worker } from "bullmq";
 
+let processedJobCount = 0;
+
 const worker = new Worker(
-  "pull-queue",
+  `${process.env.INSTANCE_ID}-queue`,
   async (job) => {
     console.log(
-      "assigned job >>> ",
-      job.data,
-      "to instance >>> ",
-      process.env.INSTANCE_ID,
+      "worker" +
+        process.env.INSTANCE_ID +
+        "processed job # " +
+        ++processedJobCount,
     );
   },
   {

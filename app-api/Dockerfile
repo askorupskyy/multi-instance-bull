@@ -7,4 +7,4 @@ COPY . .
 RUN npm install
 RUN npm run build
 
-CMD ["node", "dist/app-pull/main.js"]
+CMD ["node", "dist/app-api/main.js"]

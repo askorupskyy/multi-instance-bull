@@ -3,13 +3,13 @@ import { Worker } from "bullmq";
 let processedJobCount = 0;
 
 const worker = new Worker(
-  `${process.env.INSTANCE_ID}-queue`,
+  `${process.env.GROUP_ID}-queue`,
   async (job) => {
+    await new Promise((res, rej) => {
+      setTimeout(() => res("job done"), 5000);
+    });
     console.log(
-      "worker" +
-        process.env.INSTANCE_ID +
-        "processed job # " +
-        ++processedJobCount,
+      process.env.GROUP_ID + " processed job # " + ++processedJobCount,
     );
   },
   {

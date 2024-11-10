@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/app-main/",
+    "outDir": "./dist/app-api/",
     "module": "nodenext",
     "types": ["node"],
     "target": "esnext",

@@ -1,26 +1,22 @@
 services:
-  # main:
-  #   build: ./app-main
-  #   tty: true
-  #
-  pull_1:
-    build: ./app-pull
-    environment:
-      INSTANCE_ID: "pull-worker-1"
+  main:
+    build: ./app-api
+    tty: true
 
-  pull_2:
-    build: ./app-pull
+  worker-green:
+    build: ./app-worker
     environment:
-      INSTANCE_ID: "pull-worker-2"
+      WEIGHT: 80
+      GROUP_ID: "worker-green"
 
-  pull_3:
-    build: ./app-pull
+  # this could be an updated image
+  worker-blue:
+    build: ./app-worker
     environment:
-      INSTANCE_ID: "pull-worker-3"
+      WEIGHT: 20
+      GROUP_ID: "worker-blue"
 
   redis:
     image: "redis:alpine"
     ports:
       - "6379:6379"
-    environment:
-      INSTANCE_ID: 4

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/app-pull/",
+    "outDir": "./dist/app-worker/",
     "module": "es2022",
     "types": ["node"],
     "target": "es2022",

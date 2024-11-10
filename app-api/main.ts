@@ -11,9 +11,8 @@ import { createBalancer } from "./load-balancer.js";
 // (or even a small section of redis memory where all those instances are located)
 const CONFIG = {
   CONNECTED_INSTANCES: {
-    "pull-worker-1": { TRAFFIC_PERCENTAGE: 20 },
-    "pull-worker-2": { TRAFFIC_PERCENTAGE: 10 },
-    "pull-worker-3": { TRAFFIC_PERCENTAGE: 70 },
+    "worker-blue": { WEIGHT: 20 },
+    "worker-green": { WEIGHT: 80 },
   },
 };
 
@@ -36,9 +35,7 @@ const queues = Object.keys(CONFIG.CONNECTED_INSTANCES).reduce<
 // inside the `balance` callback we can do whatever we want: run healthchecks,
 // rebalance the queue if one of the workers is dead or had too many failed jobs, etc.
 const balance = createBalancer(
-  Object.values(CONFIG.CONNECTED_INSTANCES).map(
-    (instance) => instance.TRAFFIC_PERCENTAGE,
-  ),
+  Object.values(CONFIG.CONNECTED_INSTANCES).map((instance) => instance.WEIGHT),
 );
 
 // emulates requests coming in...
@@ -53,7 +50,9 @@ async function addJobs() {
 
 await addJobs();
 
-console.log("jobs added, dying...");
+console.log("jobs added");
+
+while (true) {}
 
 // consider following scenarios:
 // 1. worker dies: when choosing the next instance upon running `balance()` also run a healthcheck and if the worker is dead ignore it

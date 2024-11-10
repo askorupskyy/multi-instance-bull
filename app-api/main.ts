@@ -17,7 +17,11 @@ const CONFIG = {
 };
 
 // for each master-worker relationship we would want a separate queue.
-// the queue itself is not a good place to distribute traffic and thus this part should be handled by us.
+// the queue itself is not a good place to distribute traffic because it assigns a worker randomly
+// and therefore this part should be handled separately by us.
+
+// the point of the queue is to keep track of which jobs are assigned and what their state is.
+// also in case we have 6 green and 4 blue nodes we can use two queues to equally disctribute traffic across these 2 groups.
 const queues = Object.keys(CONFIG.CONNECTED_INSTANCES).reduce<
   Partial<Record<keyof (typeof CONFIG)["CONNECTED_INSTANCES"], Queue>>
 >(

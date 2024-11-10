@@ -6,14 +6,12 @@ services:
   worker-green:
     build: ./app-worker
     environment:
-      WEIGHT: 80
       GROUP_ID: "worker-green"
 
   # this could be an updated image
   worker-blue:
     build: ./app-worker
     environment:
-      WEIGHT: 20
       GROUP_ID: "worker-blue"
 
   redis:

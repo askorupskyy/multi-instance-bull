@@ -11,8 +11,8 @@ import { createBalancer } from "./load-balancer.js";
 // (or even a small section of redis memory where all those instances are located)
 const CONFIG = {
   CONNECTED_INSTANCES: {
-    "worker-blue": { WEIGHT: 20 },
-    "worker-green": { WEIGHT: 80 },
+    "worker-blue": { WEIGHT: 5 },
+    "worker-green": { WEIGHT: 95 },
   },
 };
 
@@ -34,15 +34,78 @@ const queues = Object.keys(CONFIG.CONNECTED_INSTANCES).reduce<
 // for the demo purpose i feel like this is enough
 // inside the `balance` callback we can do whatever we want: run healthchecks,
 // rebalance the queue if one of the workers is dead or had too many failed jobs, etc.
-const balance = createBalancer(
-  Object.values(CONFIG.CONNECTED_INSTANCES).map((instance) => instance.WEIGHT),
-);
+const balancer = createBalancer(Object.values(CONFIG.CONNECTED_INSTANCES));
+
+// we also want to create a listener for each queues if all of its workers are dead
+setInterval(() => {
+  Object.keys(CONFIG.CONNECTED_INSTANCES).forEach(async (name) => {
+    const instance =
+      CONFIG.CONNECTED_INSTANCES[
+        name as keyof typeof CONFIG.CONNECTED_INSTANCES
+      ];
+
+    const q = queues[name as keyof typeof queues];
+    if (!q) return;
+
+    // does not need rebalancing if it's already zero
+    if ((await q.getWorkersCount()) === 0 && instance.WEIGHT !== 0) {
+      console.log(`-------------------------`);
+      console.log(`rebalancing queue ${name}`);
+      // pause the queue
+      q.pause();
+
+      let nonDownKey: keyof typeof CONFIG.CONNECTED_INSTANCES | null = null;
+      for (const key of Object.keys(CONFIG.CONNECTED_INSTANCES)) {
+        if (key === name || CONFIG.CONNECTED_INSTANCES[key].WEIGHT === 0) {
+          continue;
+        }
+
+        nonDownKey = key as keyof typeof CONFIG.CONNECTED_INSTANCES;
+      }
+
+      if (nonDownKey === null) {
+        console.log(`all nodes are down, we cannot rebalance`);
+        return;
+      }
+
+      CONFIG.CONNECTED_INSTANCES = {
+        ...CONFIG.CONNECTED_INSTANCES,
+        [name]: { WEIGHT: 0 },
+        [nonDownKey]: {
+          WEIGHT:
+            CONFIG.CONNECTED_INSTANCES[nonDownKey].WEIGHT + instance.WEIGHT,
+        },
+      };
+      // get the name of the first worker that is not down and assign the rest of the traffic to it...
+
+      console.log(`new balancer cfg ::: `, CONFIG.CONNECTED_INSTANCES);
+      const jobs = await q.getJobs();
+
+      balancer.setNodes(Object.values(CONFIG.CONNECTED_INSTANCES));
+      balancer.resetTicker();
+
+      for (const j of jobs) {
+        const nodeIdx = balancer.balance();
+        const q: Queue = queues[Object.keys(queues)[nodeIdx]];
+        await q.add(j.name, j.data);
+      }
+
+      q.drain();
+      q.resume();
+
+      console.log(`rebalancing ${jobs.length} jobs.... done`);
+      console.log(`-------------------------`);
+    }
+
+    console.log("no rebalancing neeeded....");
+  });
+}, 5000);
 
 // emulates requests coming in...
 async function addJobs() {
   for (let i = 0; i < 1000; i++) {
     // here we obtain the correct node idx.
-    const nodeIdx = balance();
+    const nodeIdx = balancer.balance();
     const q: Queue = queues[Object.keys(queues)[nodeIdx]];
     await q.add("pull", { url: `google.com` });
   }
@@ -51,8 +114,6 @@ async function addJobs() {
 await addJobs();
 
 console.log("jobs added");
-
-while (true) {}
 
 // consider following scenarios:
 // 1. worker dies: when choosing the next instance upon running `balance()` also run a healthcheck and if the worker is dead ignore it

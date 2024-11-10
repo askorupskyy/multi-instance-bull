@@ -6,7 +6,7 @@ const worker = new Worker(
   `${process.env.GROUP_ID}-queue`,
   async (job) => {
     await new Promise((res, rej) => {
-      setTimeout(() => res("job done"), 5000);
+      setTimeout(() => res("job done"), 500);
     });
     console.log(
       process.env.GROUP_ID + " processed job # " + ++processedJobCount,
